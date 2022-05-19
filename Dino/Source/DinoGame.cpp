@@ -169,6 +169,14 @@ void DinoGame::displayGame() {
     pauseButton.sethRectWidth(SET_CLIP_STATUS_GAMEBUTTON_Y);
     pauseButton.loadImage("Resource/Button/pause_button.png", gRenderer);
 
+    Button pauseButtonRemove;
+    pauseButtonRemove.setIdFrame(0);
+    pauseButtonRemove.setPosX(STATUS_GAME_BUTTON_X);
+    pauseButtonRemove.setPosY(STATUS_GAME_BUTTON_Y);
+    pauseButtonRemove.sethRectHeight(SET_CLIP_STATUS_GAMEBUTTON_X);
+    pauseButtonRemove.sethRectWidth(SET_CLIP_STATUS_GAMEBUTTON_Y);
+    pauseButtonRemove.loadImage("Resource/Button/pause_button_remove.png", gRenderer);
+
     Button continueButton;
     continueButton.setIdFrame(0);
     continueButton.setPosX(STATUS_GAME_BUTTON_X);
@@ -181,6 +189,14 @@ void DinoGame::displayGame() {
     const int SOUND_BUTTON_Y = 25;
     const int SET_CLIP_SOUND_BUTTON_X = 34;
     const int SET_CLIP_SOUND_BUTTON_Y = 40;
+    Button soundOnButtonRemove;
+    soundOnButtonRemove.setIdFrame(0);
+    soundOnButtonRemove.setPosX(SOUND_BUTTON_X);
+    soundOnButtonRemove.setPosY(SOUND_BUTTON_Y);
+    soundOnButtonRemove.sethRectHeight(SET_CLIP_SOUND_BUTTON_X);
+    soundOnButtonRemove.sethRectWidth(SET_CLIP_SOUND_BUTTON_Y);
+    soundOnButtonRemove.loadImage("Resource/Button/soundOn_button_remove.png", gRenderer);
+
     Button soundOnButton;
     soundOnButton.setIdFrame(0);
     soundOnButton.setPosX(SOUND_BUTTON_X);
@@ -299,45 +315,6 @@ void DinoGame::displayGame() {
                 speed = min(MAX_SPEED, curTime / (FRAME_PER_SECOND * TIME_CHANGE_SPEED));
                 process(speed);
             }
-            if (checkColi(dino, Air) || checkColi(dino, Ground1) || checkColi(dino, Ground2)) {
-                if (diedDino == false) {
-                    if (sound == true) {
-                        Mix_PlayChannel(-1, gLoseMusic, 0);
-                        Mix_PauseMusic();
-                    }
-                }
-
-                diedDino = true;
-
-                SDL_Surface* loadSurface = IMG_Load("Resource/lose.png");
-                SDL_Texture* lose_texture = SDL_CreateTextureFromSurface(gRenderer, loadSurface);
-                SDL_FreeSurface(loadSurface);
-                SDL_RenderCopy(gRenderer, lose_texture, NULL, NULL);
-                SDL_RenderPresent(gRenderer);
-                SDL_DestroyTexture(lose_texture);
-
-                while (SDL_WaitEvent(&event)) {
-                    if (event.type == SDL_QUIT) {
-                        isRunning = false;
-                        quit = true;
-                        break;
-                    }
-                    else if (event.type == SDL_KEYDOWN) {
-                        switch (event.key.keysym.sym) {
-                        case SDLK_SPACE:
-                            isRunning = false;
-                            break;
-
-                        case SDLK_ESCAPE:
-                            isRunning = false;
-                            quit = true;
-                            break;
-                        }
-                    }
-                    if (isRunning == false) break;
-                }
-            }
-            
             if (diedDino == true) continue;
             const int RIGHT_MARGIN = 75;
             const int TOP_MARGIN = 10;
@@ -358,7 +335,7 @@ void DinoGame::displayGame() {
 
             scoreText.showText(gRenderer, SCORE_TEXT_POS_X, TOP_MARGIN);
             highScoreText.showText(gRenderer, HIGHSCORE_TEXT_POS_X, TOP_MARGIN + DISTANCE_TEXT);
-            
+
             if (score >= highScore) {
                 ofstream file("Resource/Database/HighScore.txt");
                 file << highScore;
@@ -373,7 +350,94 @@ void DinoGame::displayGame() {
                 soundOnButton.render(gRenderer);
             else
                 soundOffButton.render(gRenderer);
+
+
             SDL_RenderPresent(gRenderer);
+            if (checkColi(dino, Air) || checkColi(dino, Ground1) || checkColi(dino, Ground2)) {
+                if (diedDino == false) {
+                    if (sound == true) {
+                        Mix_PlayChannel(-1, gLoseMusic, 0);
+                        Mix_PauseMusic();
+                    }
+                }
+
+                diedDino = true;
+
+                pauseButtonRemove.render(gRenderer);
+                soundOnButtonRemove.render(gRenderer);
+
+                SDL_Surface* loadSurface = IMG_Load("Resource/lose.png");
+                SDL_Texture* lose_texture = SDL_CreateTextureFromSurface(gRenderer, loadSurface);
+                SDL_FreeSurface(loadSurface);
+                SDL_RenderCopy(gRenderer, lose_texture, NULL, NULL);
+                SDL_RenderPresent(gRenderer);
+                SDL_DestroyTexture(lose_texture);
+
+                while (diedDino) {
+                    while (SDL_WaitEvent(&event)) {
+                        if (event.type == SDL_QUIT) {
+                            isRunning = false;
+                            quit = true;
+                            diedDino = false;
+                            break;
+                        }
+                        else if (event.type == SDL_KEYDOWN) {
+                            switch (event.key.keysym.sym) {
+                            case SDLK_SPACE:
+                                isRunning = false;
+                                break;
+
+                            case SDLK_ESCAPE:
+                                isRunning = false;
+                                quit = true;
+                                diedDino = false;
+                                break;
+                            }
+                        }
+                        if (isRunning == false) {
+                            diedDino = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            //if (diedDino == true) continue;
+            //const int RIGHT_MARGIN = 75;
+            //const int TOP_MARGIN = 10;
+            //scoreText.setColor(LTexture::WHITE_COLOR);
+            //string scoreStr = "SCORE: " + to_string(score);
+            //scoreText.setText(scoreStr);
+            //scoreText.loadFromRenderText(fontGame, gRenderer);
+
+            //const int DISTANCE_TEXT = 40;
+            //highScore = max(highScore, score);
+            //highScoreText.setColor(LTexture::WHITE_COLOR);
+            //string highScoreStr = "HIGHSCORE: " + to_string(highScore);
+            //highScoreText.setText(highScoreStr);
+            //highScoreText.loadFromRenderText(fontGame, gRenderer);
+
+            //const int SCORE_TEXT_POS_X = 700;
+            //const int HIGHSCORE_TEXT_POS_X = 638;
+
+            //scoreText.showText(gRenderer, SCORE_TEXT_POS_X, TOP_MARGIN);
+            //highScoreText.showText(gRenderer, HIGHSCORE_TEXT_POS_X, TOP_MARGIN + DISTANCE_TEXT);
+            //
+            //if (score >= highScore) {
+            //    ofstream file("Resource/Database/HighScore.txt");
+            //    file << highScore;
+            //    file.close();
+            //}
+
+            //if (curButton == typeButton::PAUSE)
+            //    pauseButton.render(gRenderer);
+            //else
+            //    continueButton.render(gRenderer);
+            //if (sound == true)
+            //    soundOnButton.render(gRenderer);
+            //else
+            //    soundOffButton.render(gRenderer);
+            //SDL_RenderPresent(gRenderer);
 
             int realTime = timer.getTicks();
             int timeOneFrame = 1000 / FRAME_PER_SECOND;
